@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>CodeVector Products</title>
+
+<style>
+
+body{
+font-family:Arial;
+max-width:1000px;
+margin:40px auto;
+padding:20px;
+}
+
+.controls{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+}
+
+.product{
+border:1px solid #ddd;
+padding:10px;
+margin-bottom:10px;
+border-radius:8px;
+}
+
+button{
+padding:8px 16px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Products Browser</h1>
+
+<div class="controls">
+
+<select id="category">
+
+<option value="">All</option>
+
+<option value="electronics">electronics</option>
+
+<option value="fashion">fashion</option>
+
+<option value="books">books</option>
+
+<option value="sports">sports</option>
+
+<option value="home">home</option>
+
+<option value="beauty">beauty</option>
+
+</select>
+
+<button onclick="loadProducts()">Filter</button>
+
+</div>
+
+<div id="products"></div>
+
+<button onclick="nextPage()">
+
+Load More
+
+</button>
+
+<script>
+
+let cursorUpdatedAt=null;
+
+let cursorId=null;
+
+async function loadProducts(reset=true){
+
+if(reset){
+
+cursorUpdatedAt=null;
+
+cursorId=null;
+
+document.getElementById(
+'products'
+).innerHTML='';
+
+}
+
+const category=
+document.getElementById(
+'category'
+).value;
+
+let url=
+'http://127.0.0.1:8000/products?limit=20';
+
+if(category){
+
+url+=`&category=${category}`;
+
+}
+
+if(cursorUpdatedAt && cursorId){
+
+url+=`&cursor_updated_at=${cursorUpdatedAt}`;
+
+url+=`&cursor_id=${cursorId}`;
+
+}
+
+const response=
+await fetch(url);
+
+const data=
+await response.json();
+
+data.data.forEach(p=>{
+
+document.getElementById(
+'products'
+).innerHTML +=`
+
+<div class="product">
+
+<h3>${p.name}</h3>
+
+<p>${p.category}</p>
+
+<p>$${p.price}</p>
+
+</div>
+
+`;
+
+});
+
+if(data.next_cursor){
+
+cursorUpdatedAt=
+data.next_cursor.updated_at;
+
+cursorId=
+data.next_cursor.id;
+
+}
+
+}
+
+function nextPage(){
+
+loadProducts(false);
+
+}
+
+loadProducts();
+
+</script>
+
+</body>
+
+</html>
